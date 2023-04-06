@@ -1,4 +1,4 @@
-from .Module import Module
+from .module import Module
 import numpy as np
 
 
