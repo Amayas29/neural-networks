@@ -1,15 +1,5 @@
-import numpy as np
-
-
-class Loss(object):
-    def forward(self, y, yhat):
-        pass
-
-    def backward(self, y, yhat):
-        pass
-
-
 class Module(object):
+
     def __init__(self):
         self._parameters = None
         self._gradient = None
