@@ -1,9 +1,9 @@
 class Loss(object):
 
     def forward(self, y, yhat):
-        # Calcule la passe forward
+        # Calcule le coût
         pass
 
     def backward(self, y, yhat):
-        # Calcul la derivee de l'erreur
+        # Calcul le gradient du coût par rapport yhat
         pass
