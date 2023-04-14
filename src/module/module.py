@@ -5,21 +5,36 @@ class Module(object):
         self._gradient = None
 
     def update_parameters(self, gradient_step=1e-3):
-        # Calcule la mise a jour des parametres selon le gradient calcule et le pas de gradient_step
+        """
+        Calcule la mise a jour des parametres selon le gradient calculé
+        et le pas de gradient_step
+
+        Args:
+            gradient_step: float
+        """
         self._parameters -= gradient_step * self._gradient
 
     def zero_grad(self):
-        # Annule gradient
+        """
+        Annule gradient
+        """
         pass
 
     def forward(self, X):
-        # Calcule la passe forward
+        """
+        Calcule la passe forward
+        """
         pass
 
     def backward_update_gradient(self, X, delta):
-        # Met a jour la valeur du gradient
+        """
+        Met à jour la valeur du gradient
+        """
+
         pass
 
     def backward_delta(self, X, delta):
-        # Calcul la derivee de l'erreur
+        """
+        Calcul la derivee de l'erreur
+        """
         pass
