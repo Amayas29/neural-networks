@@ -6,6 +6,9 @@ import numpy as np
 class LinearRegression:
 
     def __init__(self, niter=1000, gradient_step=1e-3, loss=MSELoss()):
+
+        assert niter != 0, "Erreur - LinearRegression:init - niter est nul"
+
         self.niter = niter
         self.gradient_step = gradient_step
 
@@ -27,6 +30,7 @@ class LinearRegression:
 
             yhat = self.linear.forward(X)
             loss_i = self.loss.forward(y, yhat)
+
             self.train_loss.append(np.mean(loss_i))
 
             delta = self.loss.backward(y, yhat)
