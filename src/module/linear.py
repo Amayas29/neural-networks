@@ -4,7 +4,7 @@ import numpy as np
 
 class Linear(Module):
 
-    def __init__(self, input_dim, output_dim, bias=True):
+    def __init__(self, input_dim, output_dim, bias=False):
         super().__init__()
 
         self._input_dim = input_dim
@@ -63,6 +63,6 @@ class Linear(Module):
         out = np.dot(delta, self._parameters.T)
 
         if self._bias is not None:
-            out += self._bias_gradient
+            out += self._bias
 
         return out

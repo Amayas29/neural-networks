@@ -3,11 +3,11 @@ from module.linear import Linear
 import numpy as np
 
 
-class LinearRegression:
+class LinearNetwork:
 
-    def __init__(self, niter=1000, gradient_step=1e-3, loss=MSELoss()):
+    def __init__(self, niter=1000, gradient_step=1e-5, loss=MSELoss(), bias=False):
 
-        assert niter != 0, "Erreur - LinearRegression:init - niter est nul"
+        assert niter != 0, "Erreur - LinearNetwork:init - niter est nul"
 
         self.niter = niter
         self.gradient_step = gradient_step
@@ -16,14 +16,22 @@ class LinearRegression:
         self.linear = None
         self.train_loss = []
 
+        self.bias = bias
+
     def fit(self, X, y):
+
+        if len(X.shape) == 1:
+            X = X.reshape((-1, 1))
+
+        if len(y.shape) == 1:
+            y = y.reshape((-1, 1))
 
         bX, input_dim = X.shape
         bY, output_dim = y.shape
 
-        assert bX == bY, "Erreur - LinearRegression:fit - Les dimensions batch de X et y ne correspondent pas."
+        assert bX == bY, "Erreur - LinearNetwork:fit - Les dimensions batch de X et y ne correspondent pas."
 
-        self.linear = Linear(input_dim, output_dim)
+        self.linear = Linear(input_dim, output_dim, bias=self.bias)
         self.train_loss = []
 
         for _ in range(self.niter):

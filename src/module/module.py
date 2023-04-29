@@ -3,6 +3,7 @@ class Module(object):
     def __init__(self):
         self._parameters = None
         self._gradient = None
+        self._bias_gradient = None
 
     def update_parameters(self, gradient_step=1e-3):
         """
