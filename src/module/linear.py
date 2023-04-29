@@ -12,10 +12,6 @@ class Linear(Module):
 
         self._parameters = 2 * (np.random.rand(input_dim, output_dim) - 0.5)
 
-        # Or this
-        # self._parameters = np.random.randn(
-        #     input_dim, output_dim) / np.sqrt(input_dim)
-
         self._bias = None
         if bias:
             self._bias = np.ones(output_dim)

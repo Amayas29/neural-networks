@@ -10,7 +10,7 @@ class TanH(Module):
     def zero_grad(self):
         return
 
-    def update_parameters(self):
+    def update_parameters(self, gradient_step=1e-3):
         return
 
     def forward(self, X):
@@ -20,4 +20,4 @@ class TanH(Module):
         return
 
     def backward_delta(self, X, delta):
-        return 1 - np.tanh(X)**2
+        return (1 - np.tanh(X) ** 2) * delta

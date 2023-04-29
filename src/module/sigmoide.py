@@ -10,7 +10,7 @@ class Sigmoide(Module):
     def zero_grad(self):
         return
 
-    def update_parameters(self):
+    def update_parameters(self, gradient_step=1e-3):
         return
 
     def forward(self, X):
@@ -20,8 +20,7 @@ class Sigmoide(Module):
         return
 
     def backward_delta(self, X, delta):
-        sig = self.__sigmoid(x)
-        return sig * (1 - sig)
+        return (np.exp(-X) / (1 + np.exp(-X))**2) * delta
 
-    def __sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
+    def __sigmoid(self, X):
+        return 1 / (1 + np.exp(-X))

@@ -39,21 +39,21 @@ def generate_data_gauss(n_samples, means, sigmas, labels=None):
     return X[index], y[index]
 
 
-def generate_data_outliers(n_samples, n_outliers, means, sigmas):
+# def generate_data_outliers(n_samples, n_outliers, means, sigmas):
 
-    X1 = np.random.randn(n_samples - n_outliers, 2) * sigmas[0] + means[0]
-    Y1 = np.full(len(X1), 1)
+#     X1 = np.random.randn(n_samples - n_outliers, 2) * sigmas[0] + means[0]
+#     Y1 = np.full(len(X1), 1)
 
-    X2 = np.random.randn(n_samples - n_outliers, 2) * sigmas[1] + means[1]
-    Y2 = np.full(len(X2), -1)
+#     X2 = np.random.randn(n_samples - n_outliers, 2) * sigmas[1] + means[1]
+#     Y2 = np.full(len(X2), -1)
 
-    X_out = np.random.randn(n_outliers, 2) * sigmas[2] + means[2]
-    Y_out = np.full(len(X_out), 0)
+#     X_out = np.random.randn(n_outliers, 2) * sigmas[2] + means[2]
+#     Y_out = np.full(len(X_out), 0)
 
-    X = np.concatenate([X1, X2, X_out], axis=0)
-    y = np.concatenate([Y1, Y2, Y_out], axis=0)
+#     X = np.concatenate([X1, X2, X_out], axis=0)
+#     y = np.concatenate([Y1, Y2, Y_out], axis=0)
 
-    indices = np.arange(len(X))
-    np.random.shuffle(indices)
+#     indices = np.arange(len(X))
+#     np.random.shuffle(indices)
 
-    return X[indices], y[indices]
+#     return X[indices], y[indices]
