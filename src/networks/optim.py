@@ -1,9 +1,9 @@
-from loss.mse_loss import MSELoss
+from loss.loss import MSELoss
 import numpy as np
+from tqdm import tqdm
 
 
 class Optim:
-
     def __init__(self, net, loss=MSELoss(), eps=1e-5):
         self.net = net
         self.loss = loss
@@ -11,43 +11,45 @@ class Optim:
         self.train_loss = []
 
     def step(self, X, y):
-        yhat = self.net.forward(X)
+        yhat = self.net(X)
+        loss_value = self.loss(y, yhat).mean()
+
         delta = self.loss.backward(y, yhat)
-        self.net.backward(delta, eps=self.eps)
+        self.net.zero_grad()
+        self.net.backward(delta)
+        self.net.update_parameters(self.eps)
 
-    def SGD(self, X, y, batch_size, num_iterations, verbose=True):
+        return loss_value
 
-        if len(X.shape) == 1:
+    def SGD(self, X, y, batch_size, epochs, verbose=True):
+        if X.ndim == 1:
             X = X.reshape((-1, 1))
 
-        if len(y.shape) == 1:
+        if y.ndim == 1:
             y = y.reshape((-1, 1))
 
         self.train_loss = []
 
-        num_samples = X.shape[0]
-        num_batches = num_samples // batch_size
+        n_samples = X.shape[0]
+        n_batches = n_samples // batch_size
 
-        for iteration in range(num_iterations):
+        for epoch in tqdm(range(epochs)):
+            loss_epoch = 0
 
-            indices = np.random.permutation(num_samples)
+            indices = np.random.permutation(n_samples)
             X = X[indices]
             y = y[indices]
 
-            for batch in range(num_batches):
-                start = batch * batch_size
-                end = (batch + 1) * batch_size
-                X_batch = X[start:end]
-                y_batch = y[start:end]
+            X_batchs = np.array_split(X, n_batches)
+            y_batchs = np.array_split(y, n_batches)
 
-                self.step(X_batch, y_batch)
+            for X_batch, y_batch in zip(X_batchs, y_batchs):
+                loss_epoch += self.step(X_batch, y_batch)
 
-            y_pred = self.net.forward(X)
-            loss = self.loss.forward(y, y_pred).mean()
-            self.train_loss.append(loss)
+            loss_epoch /= n_batches
+            self.train_loss.append(loss_epoch)
 
-            if verbose and (iteration+1) % 100 == 0:
-                print(
-                    f"Iteration {iteration+1}/{num_iterations} - Loss: {loss}")
+            if verbose and (epoch + 1) % 100 == 0:
+                print(f"Epoch {epoch+1}/{epochs} - Loss: {loss_epoch}")
 
         print("Training completed.")
