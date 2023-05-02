@@ -58,3 +58,24 @@ class CELogSoftmax(Loss):
         )
 
         return -y + np.exp(yhat) / np.exp(yhat).sum(axis=1).reshape(-1, 1)
+
+
+class BCELoss(Loss):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, y, yhat):
+        assert y.shape == yhat.shape, ValueError(
+            "Les dimensions y et yhat ne correspondent pas."
+        )
+
+        return -(y * np.log(np.clip(yhat, 1e-10, 1))) + (1 - y) * np.log(
+            np.clip(1 - yhat, 1e-10, 1)
+        )
+
+    def backward(self, y, yhat):
+        assert y.shape == yhat.shape, ValueError(
+            "Les dimensions y et yhat ne correspondent pas."
+        )
+
+        return -y / np.clip(yhat, 1e-10, 1) + (1 - y) / np.clip(1 - yhat, 1e-10, 1)

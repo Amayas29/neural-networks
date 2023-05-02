@@ -22,12 +22,12 @@ def plot_net(
     net_title="",
 ):
     ncols = 2
-    if net_type == "multiclass":
+    if net_type == "multiclass" or net_type == "auto_encodeur":
         ncols = 1
 
     fig, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(20, 6))
 
-    if net_type == "multiclass":
+    if net_type == "multiclass" or net_type == "auto_encodeur":
         axs = [axs]
 
     axs[0].plot(train_loss, label=loss_name, c="darkseagreen")
