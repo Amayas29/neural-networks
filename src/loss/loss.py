@@ -69,15 +69,9 @@ class BCELoss(Loss):
             "Les dimensions y et yhat ne correspondent pas."
         )
 
-        # Or this
-        # return -(
-        #     y * np.log(np.clip(yhat, 1e-10, 1))
-        #     + (1 - y) * np.log(np.clip(1 - yhat, 1e-10, 1))
-        # )
-
         return -(
-            y * np.maximum(-100, np.log(yhat + 0.01))
-            + (1 - y) * np.maximum(-100, np.log(1 - yhat + 0.01))
+            y * np.maximum(-100, np.log(yhat + 1e-3))
+            + (1 - y) * np.maximum(-100, np.log(1 - yhat + 1e-3))
         )
 
     def backward(self, y, yhat):
@@ -85,7 +79,4 @@ class BCELoss(Loss):
             "Les dimensions y et yhat ne correspondent pas."
         )
 
-        # Or this
-        # return -y / np.clip(yhat, 1e-10, 1) + (1 - y) / np.clip(1 - yhat, 1e-10, 1)
-
-        return (-y / (yhat + 0.01)) + ((1 - y) / (1 - yhat + 0.01))
+        return -(y / (yhat + 1e-3)) + ((1 - y) / (1 - yhat + 1e-3))

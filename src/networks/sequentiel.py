@@ -2,11 +2,11 @@ import numpy as np
 
 
 class Sequentiel:
-    def __init__(self, modules, neg_class=-1):
+    def __init__(self, modules, classes_type="0/1"):
         self.modules = modules
         self.inputs_modules = []
 
-        self.classes = [neg_class, 1]
+        self.classes_type = classes_type
 
     def __call__(self, *args, **kwds):
         return self.forward(*args, **kwds)
@@ -36,8 +36,13 @@ class Sequentiel:
     def predict(self, X):
         ypred = self(X)
 
-        thershold = 0.5
-        if self.classes[0] == -1:
-            thershold = 0
+        if self.classes_type == "multi":
+            return np.argmax(ypred, axis=1, keepdims=True)
 
-        return np.where(ypred < thershold, self.classes[0], self.classes[1])
+        neg_class = -1
+        th = 0
+        if self.classes_type == "0/1":
+            neg_class = 0
+            th = 0.5
+
+        return np.where(ypred < th, neg_class, 1)

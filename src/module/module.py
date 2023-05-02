@@ -3,18 +3,14 @@ import numpy as np
 
 
 class Linear(Module):
-    def __init__(self, input_dim, output_dim, bias=False):
-        super().__init__()
+    def __init__(self, input_dim, output_dim, bias=False, init="uniform"):
+        super().__init__(bias)
 
         self._input_dim = input_dim
         self._output_dim = output_dim
         self.bias = bias
 
-        self._parameters["W"] = 2 * (np.random.rand(input_dim, output_dim) - 0.5)
-
-        if self.bias:
-            self._parameters["b"] = np.random.randn(1, self._output_dim)
-
+        self.__init_parameters__(init, (input_dim, output_dim), (1, output_dim))
         self.zero_grad()
 
     def zero_grad(self):
@@ -65,19 +61,14 @@ class Linear(Module):
 
 class Conv1D(Module):
     def __init__(self, k_size, chan_in, chan_out, stride, bias=False):
-        super().__init__()
+        super().__init__(bias)
 
         self._k_size = k_size
         self._chan_in = chan_in
         self._chan_out = chan_out
         self._stride = stride
 
-        self._parameters["W"] = 2 * (np.random.randn(k_size, chan_in, chan_out) - 0.5)
-
-        self.bias = bias
-        if self.bias:
-            self._parameters["b"] = np.random.randn(1, self._output_dim)
-
+        self.__init_parameters__(init, (k_size, chan_in, chan_out), (chan_out))
         self.zero_grad()
 
     def zero_grad(self):
@@ -116,39 +107,37 @@ class Conv1D(Module):
 
         return d
 
-    def forward2(self, X):
-        batch_size, length, chan_in = X.shape
-        dout = (length - self._k_size) // self._stride + 1
-        output = np.zeros((batch_size, dout, self._chan_out))
-
-        for i in range(dout):
-            window = X[:, i * self._stride : i * self._stride + self._k_size, :]
-            output[:, i, :] = np.tensordot(
-                window, self._parameters["W"], axes=([1, 2], [0, 1])
-            )
-
-        return output
+    # Optimisation ?
+    # def forward(self, X):
+    #     batch_size, length, chan_in = X.shape
+    #     dout = (length - self._k_size) // self._stride + 1
+    #     output = np.zeros((batch_size, dout, self._chan_out))
+    #
+    #     for i in range(dout):
+    #         window = X[:, i * self._stride : i * self._stride + self._k_size, :]
+    #         output[:, i, :] = np.tensordot(
+    #             window, self._parameters["W"], axes=([1, 2], [0, 1])
+    #         )
+    #
+    #     return output
 
     def backward_update_gradient(self, X, delta):
         assert X.shape[2] == self._chan_in, ValueError(
             "Les dimensions de X doivent être (batch, lenght, chan_in)"
         )
 
-        lenght = X.shape[1]
+        length = X.shape[1]
         out_length = (length - self._k_size) // self._stride + 1
 
         assert delta.shape == (X.shape[0], out_length, self._chan_out), ValueError(
             "Delta doit être de dimension (batch, (length-k_size)/stride +1, chan_out)"
         )
 
-        self._gradient["W"] += np.dot(X.T, delta)
-
-        if self.bias:
-            self._gradient["b"] += np.sum(delta, axis=0)
+        # TODO
 
     def backward_delta(self, X, delta):
         assert delta.shape == (X.shape[0], self._output_dim), ValueError(
             "Delta doit être de dimension (batch_size, output_dim)"
         )
 
-        return np.dot(delta, self._parameters["W"].T)
+        # TODO
