@@ -69,7 +69,7 @@ class BCELoss(Loss):
             "Les dimensions y et yhat ne correspondent pas."
         )
 
-        # Or
+        # Or this
         # return -(
         #     y * np.log(np.clip(yhat, 1e-10, 1))
         #     + (1 - y) * np.log(np.clip(1 - yhat, 1e-10, 1))
@@ -85,7 +85,7 @@ class BCELoss(Loss):
             "Les dimensions y et yhat ne correspondent pas."
         )
 
-        # Or
+        # Or this
         # return -y / np.clip(yhat, 1e-10, 1) + (1 - y) / np.clip(1 - yhat, 1e-10, 1)
 
         return (-y / (yhat + 0.01)) + ((1 - y) / (1 - yhat + 0.01))
