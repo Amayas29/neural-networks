@@ -27,6 +27,9 @@ def plot_net(
 
     fig, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(20, 6))
 
+    if net_type == "multiclass":
+        axs = [axs]
+
     axs[0].plot(train_loss, label=loss_name, c="darkseagreen")
     axs[0].set_xlabel("Nombre d'itérations")
     axs[0].set_title(f"Evolution de la {loss_name}")
