@@ -63,3 +63,23 @@ class Softmax(Module):
     def backward_delta(self, X, delta):
         softmax = self(X)
         return (softmax * (1 - softmax)) * delta
+
+
+class ReLU(Module):
+    def __init__(self):
+        super().__init__()
+
+    def zero_grad(self):
+        pass  # No gradient to zero
+
+    def update_parameters(self, gradient_step=1e-3):
+        pass  # No parametrs to update
+
+    def backward_update_gradient(self, X, delta):
+        pass  # No gradient to update
+
+    def forward(self, X):
+        return np.maximum(0, X)
+
+    def backward_delta(self, X, delta):
+        return np.where(X > 0, delta, 0)
