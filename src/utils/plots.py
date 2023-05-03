@@ -72,7 +72,7 @@ def plot_net(
             axs[i].set_xlabel(data_xlabel)
             axs[i].set_ylabel(data_ylabel)
             axs[i].plot(X[:, 0], toPlot, lw=4, color="r", label="reglin")
-            axs[i].set_title("Droite de la régression")
+            axs[i].set_title(f"Droite de la régression avec â = {w:.2f}")
             axs[i].legend()
 
         elif net_type == "classif":
