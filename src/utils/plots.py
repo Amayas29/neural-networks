@@ -14,103 +14,131 @@ def plot_2d(X, y="darkseagreen", title=""):
 
 
 def plot_net(
+    optim,
     X,
     y,
-    net,
-    train_loss,
-    test_loss=None,
-    loss_name="MSE",
     net_type="classif",
+    net_title="",
     data_xlabel="",
     data_ylabel="",
-    net_title="",
+    display_loss=True,
+    display_boundary=True,
+    display_score=True,
 ):
-    ncols = 2
-    if net_type == "multiclass" or net_type == "auto_encodeur":
-        ncols = 1
+    if net_type == "reglin":
+        X = np.column_stack((X, y))
+        display_score = False
+
+    elif net_type == "multiclass":
+        display_boundary = False
+
+    elif net_type == "auto_encodeur":
+        display_boundary = False
+        display_score = False
+
+    ncols = np.array([display_loss, display_score, display_boundary]).sum()
+
+    if ncols == 0:
+        return
 
     fig, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(20, 6))
 
-    if net_type == "multiclass" or net_type == "auto_encodeur":
+    if ncols == 1:
         axs = [axs]
 
-    axs[0].plot(train_loss, label=f"{loss_name} in Train", c="steelblue")
+    i = 0
 
-    if test_loss is not None and len(test_loss) != 0:
-        axs[0].plot(test_loss, label=f"{loss_name} in Test", c="coral")
+    if display_loss:
+        loss_name = optim.loss.__class__.__name__
 
-    axs[0].set_xlabel("Nombre d'itérations")
-    axs[0].set_ylabel("Loss")
-    axs[0].set_title(f"Evolution de la {loss_name}")
-    axs[0].legend()
+        axs[i].plot(optim.train_loss, label=f"{loss_name} in Train", c="steelblue")
 
-    if net_type == "multiclass" and net_type == "auto_encodeur":
-        fig.suptitle(net_title)
-        plt.show()
-        return
+        if optim.test_loss is not None and len(optim.test_loss) != 0:
+            axs[i].plot(optim.test_loss, label=f"{loss_name} in Test", c="coral")
 
-    colors = ["darksalmon", "skyblue"]
-    markers = ["o", "x"]
+        axs[i].set_xlabel("Nombre d'itérations")
+        axs[i].set_ylabel("Loss")
+        axs[i].set_title(f"Evolution de la {loss_name}")
+        axs[i].legend()
 
-    classes = [-1, 1]
-    if net.classes_type == "0/1":
-        classes = [0, 1]
+        i += 1
 
-    if net_type == "reglin":
-        X = np.column_stack((X, y))
+    if display_boundary:
+        if net_type == "reglin":
+            w = optim.net.modules[0]._parameters["W"][0][0]
+            toPlot = [w * x for x in X[:, 0]]
 
-    if net_type == "reglin":
-        w = net.modules[0]._parameters["W"][0][0]
-        toPlot = [w * x for x in X[:, 0]]
+            axs[i].scatter(X[:, 0], X[:, 1], c="midnightblue", label="data")
+            axs[i].set_xlabel(data_xlabel)
+            axs[i].set_ylabel(data_ylabel)
+            axs[i].plot(X[:, 0], toPlot, lw=4, color="r", label="reglin")
+            axs[i].set_title("Droite de la régression")
+            axs[i].legend()
 
-        axs[1].scatter(X[:, 0], X[:, 1], c="midnightblue", label="data")
-        axs[1].set_xlabel(data_xlabel)
-        axs[1].set_ylabel(data_ylabel)
-        axs[1].plot(X[:, 0], toPlot, lw=4, color="r", label="reglin")
-        axs[1].set_title("Droite de la régression")
-        axs[1].legend()
+        elif net_type == "classif":
+            colors = ["darksalmon", "skyblue"]
+            markers = ["o", "x"]
 
-    elif net_type == "classif":
-        axs[1].set_title(f"Frontiere de décision pour {len(classes)} classes")
+            classes = [-1, 1]
+            if optim.net.classes_type == "0/1":
+                classes = [0, 1]
 
-        y = y.reshape(-1)
-        for i, cl in enumerate(classes):
-            X_cl = X[y == cl]
-            axs[1].scatter(
-                X_cl[:, 0],
-                X_cl[:, 1],
-                c=colors[i],
-                marker=markers[i],
-                label=f"Classe : {cl}",
+            axs[i].set_title(f"Frontiere de décision pour {len(classes)} classes")
+
+            y = y.reshape(-1)
+            for i, cl in enumerate(classes):
+                X_cl = X[y == cl]
+                axs[1].scatter(
+                    X_cl[:, 0],
+                    X_cl[:, 1],
+                    c=colors[i],
+                    marker=markers[i],
+                    label=f"Classe : {cl}",
+                )
+
+            mmax = X.max(0)
+            mmin = X.min(0)
+
+            step = 1000
+            x1grid, x2grid = np.meshgrid(
+                np.linspace(mmin[0], mmax[0], step), np.linspace(mmin[1], mmax[1], step)
             )
 
-        mmax = X.max(0)
-        mmin = X.min(0)
+            grid = np.hstack(
+                (x1grid.reshape(x1grid.size, 1), x2grid.reshape(x2grid.size, 1))
+            )
 
-        step = 1000
-        x1grid, x2grid = np.meshgrid(
-            np.linspace(mmin[0], mmax[0], step), np.linspace(mmin[1], mmax[1], step)
-        )
+            res = optim.net.predict(grid)
+            res = res.reshape(x1grid.shape)
 
-        grid = np.hstack(
-            (x1grid.reshape(x1grid.size, 1), x2grid.reshape(x2grid.size, 1))
-        )
+            axs[i].contourf(
+                x1grid,
+                x2grid,
+                res,
+                colors=colors,
+                levels=[-1000, 0, 1000],
+                alpha=0.4,
+            )
 
-        res = net.predict(grid)
-        res = res.reshape(x1grid.shape)
+            axs[i].set_xlabel(data_xlabel)
+            axs[i].set_ylabel(data_ylabel)
+            axs[i].legend()
 
-        axs[1].contourf(
-            x1grid,
-            x2grid,
-            res,
-            colors=colors,
-            levels=[-1000, 0, 1000],
-            alpha=0.4,
-        )
+        i += 1
 
-        axs[1].set_xlabel(data_xlabel)
-        axs[1].set_ylabel(data_ylabel)
-        axs[1].legend()
+    if display_score:
+        axs[i].plot(optim.train_score, label="score in Train", c="steelblue")
+
+        if optim.test_score is not None and len(optim.test_score) != 0:
+            axs[i].plot(optim.test_score, label="score in Test", c="coral")
+
+        axs[i].set_ylim(0, 1.1)
+        axs[i].set_xlabel("Nombre d'itérations")
+        axs[i].set_ylabel("Score")
+        axs[i].set_title("Evolution du score")
+        axs[i].legend()
+
+        i += 1
 
     fig.suptitle(net_title)
     plt.show()
@@ -168,7 +196,9 @@ def visualization(X_train, Xhat, y_train, type_affichage="tsne", n_components=2)
 
 def plot_usps_predictions(X, Xhat, indices):
     num_images = len(indices)
-    fig, axs = plt.subplots(nrows=2, ncols=num_images, figsize=(16, 6))
+    figsize = (4 * num_images, 6)
+    fig, axs = plt.subplots(nrows=2, ncols=num_images, figsize=figsize)
+
     for i, idx in enumerate(indices):
         axs[0, i].imshow(X[idx].reshape((16, 16)))
         axs[0, i].set_title(f"Image originale {idx}")

@@ -46,3 +46,16 @@ class Sequentiel:
             th = 0.5
 
         return np.where(ypred < th, neg_class, 1)
+
+    def score(self, X, y):
+        if X.ndim == 1:
+            X = X.reshape((-1, 1))
+
+        if y.ndim == 1:
+            y = y.reshape((-1, 1))
+
+        if y.shape[1] > 1:
+            y = np.argmax(y, axis=1, keepdims=True)
+
+        yhat = self.predict(X)
+        return (yhat == y).mean()

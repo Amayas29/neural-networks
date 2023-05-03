@@ -13,16 +13,16 @@ class Optim:
         self.train_loss = []
         self.test_loss = []
 
+        self.train_score = []
+        self.test_score = []
+
     def step(self, X, y):
         yhat = self.net(X)
-        loss_value = self.loss(y, yhat).mean()
 
         delta = self.loss.backward(y, yhat)
         self.net.zero_grad()
         self.net.backward(delta)
         self.net.update_parameters(self.eps)
-
-        return loss_value
 
     def SGD(self, X, y, batch_size, epochs, test_train_split=False, verbose=True):
         if X.ndim == 1:
@@ -40,6 +40,9 @@ class Optim:
         self.train_loss = []
         self.test_loss = []
 
+        self.train_score = []
+        self.test_score = []
+
         n_samples = X.shape[0]
         n_batches = n_samples // batch_size
 
@@ -54,15 +57,24 @@ class Optim:
             y_batchs = np.array_split(y, n_batches)
 
             for X_batch, y_batch in zip(X_batchs, y_batchs):
-                loss_epoch += self.step(X_batch, y_batch)
+                self.step(X_batch, y_batch)
 
             loss_epoch /= n_batches
+
+            yhat = self.net(X)
+            loss_epoch = self.loss(y, yhat).mean()
             self.train_loss.append(loss_epoch)
+
+            score_epoch = self.net.score(X, y)
+            self.train_score.append(score_epoch)
 
             if test_train_split:
                 y_test_hat = self.net(X_test)
                 loss_value = self.loss(y_test, y_test_hat).mean()
                 self.test_loss.append(loss_value)
+
+                score_epoch = self.net.score(X_test, y_test)
+                self.test_score.append(score_epoch)
 
             if verbose and (epoch + 1) % 100 == 0:
                 print(f"Epoch {epoch+1}/{epochs} - Loss: {loss_epoch}")
