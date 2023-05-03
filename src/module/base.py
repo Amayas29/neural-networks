@@ -11,6 +11,9 @@ class Module(object):
     def __call__(self, *args, **kwds):
         return self.forward(*args, **kwds)
 
+    def __str__(self):
+        return f"{self.__class__.__name__}()"
+
     def __init_parameters__(self, init, W_shape, b_shape=(1, 1)):
         if init == "uniform":
             self._parameters["W"] = np.random.uniform(-1, 1, W_shape) * 0.4

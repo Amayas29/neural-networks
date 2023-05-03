@@ -13,6 +13,9 @@ class Linear(Module):
         self.__init_parameters__(init, (input_dim, output_dim), (1, output_dim))
         self.zero_grad()
 
+    def __str__(self):
+        return f"Linear({self._input_dim}, {self._output_dim})"
+
     def zero_grad(self):
         self._gradient["W"] = np.zeros_like(self._parameters["W"])
 

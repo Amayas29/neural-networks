@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import pydot
+
+
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 
@@ -11,6 +14,35 @@ def plot_2d(X, y="darkseagreen", title=""):
     plt.scatter(X[:, 0], X[:, 1], s=40, c=y, label="data")
     plt.legend()
     plt.show()
+
+
+def net_to_graph(net, net_name="network", horizontal=False):
+    net = net.modules
+
+    if horizontal:
+        graph = pydot.Dot(graph_type="digraph", rankdir="LR")
+    else:
+        graph = pydot.Dot(graph_type="digraph")
+
+    for i, layer in enumerate(net):
+        label = f"{i} - {layer}"
+
+        if layer.__class__.__name__ == "Linear":
+            node = pydot.Node(label, shape="box")
+        else:
+            node = pydot.Node(label)
+
+        graph.add_node(node)
+
+    nodes = graph.get_nodes()
+
+    for i in range(len(nodes) - 1):
+        src_node = nodes[i]
+        dst_node = nodes[i + 1]
+        edge = pydot.Edge(src_node, dst_node)
+        graph.add_edge(edge)
+
+    graph.write_png(f"{net_name}.png")
 
 
 def plot_net(
