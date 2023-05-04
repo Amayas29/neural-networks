@@ -235,23 +235,24 @@ def visualization(X_train, Xhat, y_train, type_affichage="tsne", n_components=2)
 
 
 def plot_usps_predictions(X, indices, originale=True, title=""):
-    title = "Image reconstruite"
+    img_title = "Image reconstruite"
     if originale:
-        title = "Image originale"
+        img_title = "Image originale"
 
     num_images = len(indices)
     figsize = (15, 3)
+    
     fig, axs = plt.subplots(nrows=1, ncols=num_images, figsize=figsize)
+    plt.subplots_adjust(top=1)
     fig.suptitle(title)
 
     for i, idx in enumerate(indices):
         axs[i].imshow(X[idx].reshape((16, 16)))
-        axs[i].set_title(f"{title} {idx}")
+        axs[i].set_title(f"{img_title} {idx}", y=-0.2)
         axs[i].axis("off")
 
     fig.tight_layout()
     plt.show()
-
 
 def plot_reconstruction(net, data, indices, data_type):
     dec_img = net(data)
