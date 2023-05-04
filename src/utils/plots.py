@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+import pandas as pd
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 import pydot
 
 
@@ -73,7 +75,13 @@ def plot_net(
     if ncols == 0:
         return
 
-    fig, axs = plt.subplots(nrows=1, ncols=ncols, figsize=(20, 6))
+    figsize = (20, 6)
+    if ncols == 1:
+        figsize = (7, 6)
+    elif ncols == 2:
+        figsize = (14, 6)
+
+    fig, axs = plt.subplots(nrows=1, ncols=ncols, figsize=figsize)
 
     if ncols == 1:
         axs = [axs]
@@ -118,13 +126,13 @@ def plot_net(
             axs[i].set_title(f"Frontiere de décision pour {len(classes)} classes")
 
             y = y.reshape(-1)
-            for i, cl in enumerate(classes):
+            for j, cl in enumerate(classes):
                 X_cl = X[y == cl]
-                axs[1].scatter(
+                axs[i].scatter(
                     X_cl[:, 0],
                     X_cl[:, 1],
-                    c=colors[i],
-                    marker=markers[i],
+                    c=colors[j],
+                    marker=markers[j],
                     label=f"Classe : {cl}",
                 )
 
@@ -226,17 +234,97 @@ def visualization(X_train, Xhat, y_train, type_affichage="tsne", n_components=2)
     plt.show()
 
 
-def plot_usps_predictions(X, Xhat, indices):
+def plot_usps_predictions(X, indices, originale=True, title=""):
+    title = "Image reconstruite"
+    if originale:
+        title = "Image originale"
+
     num_images = len(indices)
-    figsize = (4 * num_images, 6)
-    fig, axs = plt.subplots(nrows=2, ncols=num_images, figsize=figsize)
+    figsize = (15, 3)
+    fig, axs = plt.subplots(nrows=1, ncols=num_images, figsize=figsize)
+    fig.suptitle(title)
 
     for i, idx in enumerate(indices):
-        axs[0, i].imshow(X[idx].reshape((16, 16)))
-        axs[0, i].set_title(f"Image originale {idx}")
-        axs[0, i].axis("off")
-        axs[1, i].imshow(Xhat[idx].reshape((16, 16)))
-        axs[1, i].set_title(f"Image reconstruite {idx}")
-        axs[1, i].axis("off")
+        axs[i].imshow(X[idx].reshape((16, 16)))
+        axs[i].set_title(f"{title} {idx}")
+        axs[i].axis("off")
+
     fig.tight_layout()
     plt.show()
+
+
+def plot_reconstruction(net, data, indices, data_type):
+    dec_img = net(data)
+
+    fig, axs = plt.subplots(ncols=len(indices), nrows=1, figsize=(5 * len(indices), 5))
+    fig.suptitle(
+        f"Résultats de reconstruction d'un Autoencoder sur les données {data_type}"
+    )
+
+    for i, n in enumerate(indices):
+        axs[i].plot(data[n], "b")
+        axs[i].plot(dec_img[n], "r")
+        axs[i].fill_between(np.arange(140), data[n], dec_img[n], color="lightcoral")
+        axs[i].set_title(f"Image {n}")
+
+    fig.legend(
+        labels=["Input", "Reconstruction", "Error"],
+        loc="upper center",
+        ncol=3,
+        bbox_to_anchor=(0.5, 0),
+    )
+    plt.show()
+
+
+def classification_report(y_true, y_pred, target_names):
+    n_classes = len(target_names)
+    support = [sum(y_true == i) for i in range(n_classes)]
+    precision = [
+        sum((y_true == i) & (y_pred == i)) / max(sum(y_pred == i), 1)
+        for i in range(n_classes)
+    ]
+    recall = [
+        sum((y_true == i) & (y_pred == i)) / max(support[i], 1)
+        for i in range(n_classes)
+    ]
+    f1_score = [
+        2 * precision[i] * recall[i] / max((precision[i] + recall[i]), 1e-9)
+        for i in range(n_classes)
+    ]
+    accuracy = sum(y_true == y_pred) / len(y_true)
+
+    report_df = pd.DataFrame(
+        {
+            "class": target_names,
+            "precision": precision,
+            "recall": recall,
+            "f1-score": f1_score,
+            "support": support,
+        }
+    )
+
+    report_df = report_df.append(
+        {
+            "class": "accuracy",
+            "precision": accuracy,
+            "recall": "",
+            "f1-score": "",
+            "support": len(y_true),
+        },
+        ignore_index=True,
+    )
+
+    report_df.set_index("class", inplace=True)
+
+    cm = confusion_matrix(y_true, y_pred)
+    ax = plt.subplot()
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
+    ax.set_xlabel("Prédictions")
+    ax.set_ylabel("Labels")
+    ax.set_title("Matrice de confusion")
+    ax.xaxis.set_ticklabels(target_names)
+    ax.yaxis.set_ticklabels(target_names)
+
+    plt.show()
+
+    return report_df
