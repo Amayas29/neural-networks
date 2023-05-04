@@ -296,24 +296,24 @@ def classification_report(y_true, y_pred, target_names):
 
     report_df = pd.DataFrame(
         {
-            "class": target_names,
-            "precision": precision,
-            "recall": recall,
-            "f1-score": f1_score,
-            "support": support,
+            "class": target_names + ["accuracy"],
+            "precision": precision + [accuracy],
+            "recall": recall + [""],
+            "f1-score": f1_score + [""],
+            "support": support + [len(y_true)],
         }
     )
 
-    report_df = report_df.append(
-        {
-            "class": "accuracy",
-            "precision": accuracy,
-            "recall": "",
-            "f1-score": "",
-            "support": len(y_true),
-        },
-        ignore_index=True,
-    )
+    # report_df = report_df.append(
+    #     {
+    #         "class": "accuracy",
+    #         "precision": accuracy,
+    #         "recall": "",
+    #         "f1-score": "",
+    #         "support": len(y_true),
+    #     },
+    #     ignore_index=True,
+    # )
 
     report_df.set_index("class", inplace=True)
 
