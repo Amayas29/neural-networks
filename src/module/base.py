@@ -16,7 +16,8 @@ class Module(object):
 
     def __init_parameters__(self, init, W_shape, b_shape=(1, 1)):
         if init == "uniform":
-            self._parameters["W"] = np.random.uniform(-1, 1, W_shape) * 0.4
+            bound = 1 / np.sqrt(W_shape[0])
+            self._parameters["W"] = np.random.uniform(-bound, bound, W_shape)
             self._parameters["b"] = np.random.uniform(0, 1, b_shape)
 
         elif init == "normal":
