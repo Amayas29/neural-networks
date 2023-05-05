@@ -62,8 +62,11 @@ class Linear(Module):
         return np.dot(delta, self._parameters["W"].T)
 
 
+from numpy.lib.stride_tricks import sliding_window_view
+
+
 class Conv1D(Module):
-    def __init__(self, k_size, chan_in, chan_out, stride, bias=False):
+    def __init__(self, k_size, chan_in, chan_out, stride, bias=False, init="uniform"):
         super().__init__(bias)
 
         self._k_size = k_size
@@ -91,56 +94,70 @@ class Conv1D(Module):
             "Les dimensions de X doivent être (batch, lenght, chan_in)"
         )
 
-        batch_size, length, _ = X.shape
+        batch_size, length, chan_in = X.shape
+        dout = (length - self._k_size) // self._stride + 1
+        output = np.zeros((batch_size, dout, self._chan_out))
 
-        out_length = (length - self._k_size) // self._stride + 1
+        for i in range(dout):
+            window = X[:, i * self._stride : i * self._stride + self._k_size, :]
+            output[:, i, :] = np.tensordot(
+                window, self._parameters["W"], axes=([1, 2], [0, 1])
+            )
 
-        d = np.zeros((batch_size, out_length, self._chan_out))
+        if self.bias:
+            output += self._parameters["b"]
 
-        for x_i in range(batch_size):
-            x = X[x_i]
-
-            for c_o in range(self._chan_out):
-                W_c_o = self._parameters["W"][:, :, c_o]
-
-                for i in range(out_length):
-                    for j in range(self._k_size):
-                        for c in range(self._chan_in):
-                            d[x_i][i][c_o] += W_c_o[j, c] * x[i * self._stride + j, c]
-
-        return d
-
-    # Optimisation ?
-    # def forward(self, X):
-    #     batch_size, length, chan_in = X.shape
-    #     dout = (length - self._k_size) // self._stride + 1
-    #     output = np.zeros((batch_size, dout, self._chan_out))
-    #
-    #     for i in range(dout):
-    #         window = X[:, i * self._stride : i * self._stride + self._k_size, :]
-    #         output[:, i, :] = np.tensordot(
-    #             window, self._parameters["W"], axes=([1, 2], [0, 1])
-    #         )
-    #
-    #     return output
+        return output
 
     def backward_update_gradient(self, X, delta):
-        assert X.shape[2] == self._chan_in, ValueError(
+        batch_size, length, chan_in = X.shape
+
+        assert chan_in == self._chan_in, ValueError(
             "Les dimensions de X doivent être (batch, lenght, chan_in)"
         )
 
-        length = X.shape[1]
-        out_length = (length - self._k_size) // self._stride + 1
+        dout = (length - self._k_size) // self._stride + 1
 
-        assert delta.shape == (X.shape[0], out_length, self._chan_out), ValueError(
+        assert delta.shape == (X.shape[0], dout, self._chan_out), ValueError(
             "Delta doit être de dimension (batch, (length-k_size)/stride +1, chan_out)"
         )
 
-        # TODO
+        grad_W = np.zeros_like(self._parameters["W"])
+
+        for i in range(dout):
+            window = X[:, i * self._stride : i * self._stride + self._k_size, :]
+            window = window.reshape(batch_size, 1, self._k_size, self._chan_in)
+            window = np.repeat(window, self._chan_out, axis=1)
+
+            grad_W += np.sum(delta[:, i : i + 1, :, np.newaxis] * window, axis=0)
+
+        self._gradient["W"] += grad_W
+
+        if self.bias:
+            self._gradient["b"] += np.sum(delta, axis=(0, 1))
 
     def backward_delta(self, X, delta):
-        assert delta.shape == (X.shape[0], self._output_dim), ValueError(
-            "Delta doit être de dimension (batch_size, output_dim)"
+        batch_size, length, chan_in = X.shape
+
+        assert chan_in == self._chan_in, ValueError(
+            "Les dimensions de X doivent être (batch, lenght, chan_in)"
         )
 
-        # TODO
+        dout = (length - self._k_size) // self._stride + 1
+
+        assert delta.shape == (X.shape[0], dout, self._chan_out), ValueError(
+            "Delta doit être de dimension (batch, (length-k_size)/stride +1, chan_out)"
+        )
+
+        dx = np.zeros_like(X)
+
+        for i in range(dout):
+            grad_delta = delta[:, i : i + 1, :]
+            grad_delta = grad_delta[:, :, np.newaxis, :]
+            grad_delta = np.repeat(grad_delta, self._k_size, axis=1)
+            W = np.transpose(self._parameters["W"], (2, 0, 1))
+            dx[:, i * self._stride : i * self._stride + self._k_size, :] += (
+                grad_delta * W[np.newaxis, :, :, :]
+            )
+
+        return dx
