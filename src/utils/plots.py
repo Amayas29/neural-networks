@@ -29,7 +29,7 @@ def net_to_graph(net, net_name="network", horizontal=False):
     for i, layer in enumerate(net):
         label = f"{i} - {layer}"
 
-        if layer.__class__.__name__ == "Linear":
+        if layer.__class__.__name__ in ["Linear", "Conv1D", "MaxPool1D", "Flatten"]:
             node = pydot.Node(label, shape="box")
         else:
             node = pydot.Node(label)
@@ -241,7 +241,7 @@ def plot_usps_predictions(X, indices, originale=True, title=""):
 
     num_images = len(indices)
     figsize = (15, 3)
-    
+
     fig, axs = plt.subplots(nrows=1, ncols=num_images, figsize=figsize)
     plt.subplots_adjust(top=1)
     fig.suptitle(title)
@@ -253,6 +253,7 @@ def plot_usps_predictions(X, indices, originale=True, title=""):
 
     fig.tight_layout()
     plt.show()
+
 
 def plot_reconstruction(net, data, indices, data_type):
     dec_img = net(data)

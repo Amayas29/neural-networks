@@ -75,6 +75,11 @@ class Conv1D(Module):
         self.__init_parameters__(init, (k_size, chan_in, chan_out), (chan_out))
         self.zero_grad()
 
+    def __str__(self):
+        return (
+            f"Conv1D({self._k_size}, {self._chan_in}, {self._chan_out}, {self._stride})"
+        )
+
     def zero_grad(self):
         self._gradient["W"] = np.zeros_like(self._parameters["W"])
 
@@ -164,6 +169,9 @@ class MaxPool1D(Module):
 
         self._k_size = k_size
         self._stride = stride
+
+    def __str__(self):
+        return f"MaxPool1D({self._k_size}, {self._stride})"
 
     def zero_grad(self):
         pass  # No gradient
