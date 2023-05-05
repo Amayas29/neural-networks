@@ -304,17 +304,6 @@ def classification_report(y_true, y_pred, target_names):
         }
     )
 
-    # report_df = report_df.append(
-    #     {
-    #         "class": "accuracy",
-    #         "precision": accuracy,
-    #         "recall": "",
-    #         "f1-score": "",
-    #         "support": len(y_true),
-    #     },
-    #     ignore_index=True,
-    # )
-
     report_df.set_index("class", inplace=True)
 
     cm = confusion_matrix(y_true, y_pred)
