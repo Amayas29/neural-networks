@@ -117,7 +117,7 @@ class Conv1D(Module):
         dout = (length - self._k_size) // self._stride + 1
 
         assert delta.shape == (X.shape[0], dout, self._chan_out), ValueError(
-            "Delta doit être de dimension (batch, (length-k_size)/stride +1, chan_out)"
+            "Delta doit être de dimension (batch, (length-k_size)//stride +1, chan_out)"
         )
 
         for i in range(dout):
