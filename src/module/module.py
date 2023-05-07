@@ -1,4 +1,3 @@
-from numpy.lib.stride_tricks import sliding_window_view
 from .base import Module
 import numpy as np
 

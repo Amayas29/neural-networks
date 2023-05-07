@@ -24,7 +24,7 @@ class Optim:
         self.net.backward(delta)
         self.net.update_parameters(self.eps)
 
-    def SGD(self, X, y, batch_size, epochs, test_train_split=False, verbose=True):
+    def SGD(self, X, y, batch_size, epochs, test_train_split=False, verbose=False):
         if X.ndim == 1:
             X = X.reshape((-1, 1))
 
@@ -76,7 +76,9 @@ class Optim:
                 score_epoch = self.net.score(X_test, y_test)
                 self.test_score.append(score_epoch)
 
-            if verbose and (epoch + 1) % 100 == 0:
-                print(f"Epoch {epoch+1}/{epochs} - Loss: {loss_epoch}")
+            if verbose:
+                print(
+                    f"Epoch {epoch+1}/{epochs} - Loss: {loss_epoch} - Score: {score_epoch}"
+                )
 
         print("Training completed.")
