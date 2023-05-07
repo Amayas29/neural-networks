@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 data/fashion-*
+data/signature
 
 # C extensions
 *.so
